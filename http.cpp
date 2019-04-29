@@ -3,6 +3,7 @@
 #include <map>
 #include <sstream>
 #include <functional>
+#include <iomanip>
 #include <condition_variable>
 
 namespace {
@@ -91,7 +92,7 @@ size_t ExtractContentLength(const char* c_str) {
     auto buffer_str = std::string(c_str);
     auto content_len_start_pos = buffer_str.find("Content-Length: ");
     if(content_len_start_pos == std::string::npos) {
-        throw std::runtime_error("Unknown Content-Length. Is it binary file?");
+        throw std::runtime_error("Unknown Content-Length. Is it a binary file?\n");
     }
     auto next_line_start = buffer_str.find("\r\n", content_len_start_pos);
     if(next_line_start == std::string::npos || content_len_start_pos + 16 >= next_line_start) {
@@ -101,11 +102,10 @@ size_t ExtractContentLength(const char* c_str) {
 }
 
 char* StripHeaders(char* buffer, size_t& size) {
-    for(size_t i = 3; i < size; ++i) {
-        if(buffer[i] == '\n' && buffer[i - 1] == '\r' && buffer[i -2] == '\n' && buffer[i - 3] == '\r') {
-            size -= (i + 1);
-            return buffer + i + 1;
-        }
+    auto headerStartPos = strstr(buffer, "\r\n\r\n");
+    if(headerStartPos != NULL) {
+        size -= (headerStartPos - buffer);
+        return headerStartPos;
     }
 }
 
@@ -161,9 +161,9 @@ namespace NCustom {
 const size_t THttpClient::MaxThreadCount = std::thread::hardware_concurrency();
 
 void THttpClient::HandleData(char *buffer, size_t size, const NCustom::DataHandler& dataHandler) {
-    size_t error_counter = 0;
-    while(!dataHandler(buffer, size) && ++error_counter < MaxHandleError);
-    if(error_counter >= MaxHandleError) {
+    size_t errorCounter = 0;
+    while(!dataHandler(buffer, size) && ++errorCounter < MaxHandleError);
+    if(errorCounter >= MaxHandleError) {
         throw std::runtime_error("Too many fails in dataHandler");
     }
 }
@@ -183,7 +183,7 @@ void THttpClient::Get(const std::string &url_string, const DataHandler& dataHand
 
     buffer[received] = '\0';
     auto contentLength = ExtractContentLength(buffer);
-    std::cerr << "Downloading " << contentLength << " bytes...";
+    std::cerr << "Downloading " << contentLength << " bytes...\n";
 
     auto noHeaderBuffer = StripHeaders(buffer, received);
     HandleData(noHeaderBuffer, received, dataHandler);
@@ -193,7 +193,7 @@ void THttpClient::Get(const std::string &url_string, const DataHandler& dataHand
     for(size_t i = 0; i < MaxThreadCount - 1; i++) {
         ThreadPool.emplace([this, contentLength, i]() {
             size_t tcpCounter = 0;
-            while(this->TotalReceived < contentLength) {
+            while(this->TotalReceived < contentLength){
                 std::unique_lock<std::mutex> BufferPoolLock(BufferPoolMtx);
                 if(BufferPool.empty()) {
                     BufferPoolCond.wait(BufferPoolLock, [this](){return !this->BufferPool.empty();});
@@ -201,7 +201,11 @@ void THttpClient::Get(const std::string &url_string, const DataHandler& dataHand
                 auto buffer = BufferPool.top();
                 BufferPool.pop();
                 BufferPoolLock.unlock();
-                auto received = TCPCli.ReadBytes(buffer, this->BufferSize, tcpCounter);
+                auto received = TCPCli.ReadBytes(buffer, THttpClient::BufferSize, tcpCounter);
+                std::cout << "th: " << i
+                    << ", expected: " << contentLength
+                    << ", total: " << this->TotalReceived
+                    << ", received: " << received << std::endl;
                 std::lock_guard<std::mutex> DataPoolLock(DataPoolMtx);
                 DataPool.insert(std::make_pair(tcpCounter, std::make_pair(buffer, received)));
                 DataPoolCond.notify_one();

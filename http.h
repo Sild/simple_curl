@@ -35,7 +35,7 @@ private:
     static std::string BuildRequest(const TUrl &url);
     static void HandleData(char* buffer, size_t size, const DataHandler& dataHandler);
     static constexpr size_t MaxHandleError=5;
-    static constexpr size_t BufferSize = 65536;
+    static constexpr size_t BufferSize = 65535;
     static const size_t MaxThreadCount;
 
 public:
@@ -63,5 +63,6 @@ private:
 
     size_t NextSegmentId = 0;
     std::atomic_size_t TotalReceived;
+
 };
 }

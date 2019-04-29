@@ -8,8 +8,21 @@ void print_usage(const std::string& app_name) {
     std::cout << "Usage: " << app_name << " {url} // download file by given url\n";
     std::cout << "Usage: " << app_name << " -h  // print help" << std::endl;
 }
+
+void parseArgs(int argc, char** argv, std::string& url, std::string& fileName) {
+    url = argv[1];
+    fileName = "tmp";
+    if(argc == 3) {
+        fileName = argv[2];
+    } else {
+        auto fileNameStartPos = url.rfind('/');
+        if(fileNameStartPos != std::string::npos && fileNameStartPos < url.size() - 1) {
+            fileName = url.substr(fileNameStartPos + 1, url.size()  - fileNameStartPos);
+        }
+    }
+}
 int main(int argc, char* argv[]) {
-    if(argc != 2) {
+    if(argc != 2 && argc !=3) {
         print_usage(argv[0]);
         return 1;
     }
@@ -18,12 +31,10 @@ int main(int argc, char* argv[]) {
         print_usage(argv[0]);
         return 0;
     }
-    const std::string url = argv[1];
-    std::string fileName = "tmp";
-    auto fileNameStartPos = url.rfind('/');
-    if(fileNameStartPos != std::string::npos) {
-        fileName = url.substr(fileNameStartPos + 1, url.size()  - fileNameStartPos);
-    }
+
+    std::string url, fileName;
+    parseArgs(argc, argv, url, fileName);
+
     std::ofstream file_out;
     try {
         file_out.open(fileName, std::ios::binary | std::ios::out);
