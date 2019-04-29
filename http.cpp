@@ -170,8 +170,9 @@ void THttpClient::HandleData(char *buffer, size_t size, const NCustom::DataHandl
 
 void THttpClient::Get(const std::string &url_string, const DataHandler& dataHandler) {
     const auto url = BuildUrl(url_string);
-    if(!url.IsValid()) {
-        throw std::runtime_error("Fail to parse url");
+    const auto& invalidReason = url.Validate();
+    if(!invalidReason.empty()) {
+        throw std::runtime_error("Wrong url: " + invalidReason);
     }
     TCPCli.Connect(url.Host, url.Port);
     TCPCli.Send(BuildRequest(url));

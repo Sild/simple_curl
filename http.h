@@ -17,8 +17,14 @@ struct TUrl {
     size_t Port = 80;
     std::string Path;
     std::map<std::string, std::string> GetArgs;
-    bool IsValid() const {
-        return Protocol == "http" && !Host.empty();
+    std::string Validate() const {
+        if(Protocol != "http") {
+            return "Invalid protocol";
+        }
+        if(Host.empty()) {
+            return "Fail to parse hostname";
+        }
+        return "";
     }
 };
 
