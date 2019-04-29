@@ -11,14 +11,14 @@
 
 namespace NCustom {
 
-bool TCPClient::Connect(const std::string& host, size_t port) {
+bool TTCPClient::Connect(const std::string& host, size_t port) {
     std::cerr << "Try to get new connection...\n";
-    if(sock != -1) {
+    if(Socket != -1) {
         throw std::logic_error("Try to create a second connection. Please close the first one.");
     }
-    if(sock == -1) {
-        sock = socket(AF_INET , SOCK_STREAM , 0);
-        if (sock == -1)  {
+    if(Socket == -1) {
+        Socket = socket(AF_INET , SOCK_STREAM , 0);
+        if (Socket == -1)  {
             std::cerr << "Fail to create a socket\n";
             return false;
         }
@@ -32,25 +32,25 @@ bool TCPClient::Connect(const std::string& host, size_t port) {
         }
         addr_list = (struct in_addr **) he->h_addr_list;
         for(int i = 0; addr_list[i] != NULL; i++) {
-            server.sin_addr = *addr_list[i];
+            Server.sin_addr = *addr_list[i];
             break;
         }
     } else {
-        server.sin_addr.s_addr = inet_addr( host.c_str() );
+        Server.sin_addr.s_addr = inet_addr( host.c_str() );
     }
-    server.sin_family = AF_INET;
-    server.sin_port = htons(port);
-    if (connect(sock , (struct sockaddr *)&server , sizeof(server)) < 0) {
-        std::cerr << "Fail to create a connection with remote host\n";
+    Server.sin_family = AF_INET;
+    Server.sin_port = htons(port);
+    if (connect(Socket , (struct sockaddr *)&Server , sizeof(Server)) < 0) {
+        std::cerr << "Fail to create a connection with remote Host\n";
         return false;
     }
     std::cerr << "Connection established!\n";
     return true;
 
 }
-bool TCPClient::Send(const std::string& data) {
-    if(sock != -1) {
-        if( send(sock , data.c_str() , strlen( data.c_str() ) , 0) < 0) {
+bool TTCPClient::Send(const std::string& data) {
+    if(Socket != -1) {
+        if( send(Socket , data.c_str() , strlen( data.c_str() ) , 0) < 0) {
             std::cerr << "Send failed : " << data << "\n";
             return false;
         }
@@ -59,20 +59,22 @@ bool TCPClient::Send(const std::string& data) {
     }
 }
 
-size_t TCPClient::ReadBytes(char* buf, size_t buf_size) {
-    if(sock == -1) {
+size_t TTCPClient::ReadBytes(char* buffer, size_t bufferSize, size_t& segmentCounter) {
+    if(Socket == -1) {
         throw std::logic_error("Try to read from closed socket");
     }
-    auto received = recv(sock, buf, buf_size, 0);
+    std::lock_guard<std::mutex> Lock(ReadMtx);
+    segmentCounter = SegmentCounter++;
+    auto received = recv(Socket, buffer, bufferSize, 0);
     return received;
 }
 
 
-void TCPClient::Disconnect() {
-    if(sock != -1) {
-        close(sock);
+void TTCPClient::Disconnect() {
+    if(Socket != -1) {
+        close(Socket);
     }
-    sock = -1;
+    Socket = -1;
 }
 
 }

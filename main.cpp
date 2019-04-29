@@ -4,20 +4,29 @@
 #include <fstream>
 #include <time.h>
 
-//static std::string url = "http://releases.ubuntu.com/19.04/ubuntu-19.04-desktop-amd64.iso";
-static std::string url = "http://releases.ubuntu.com/18.04.2/ubuntu-18.04.2-live-server-amd64.iso";
-//static std::string url = "http://mi01ht.market.yandex.net:3131/marketindexer/show.py";
+void print_usage(const std::string& app_name) {
+    std::cout << "Usage: " << app_name << " {url} // download file by given url\n";
+    std::cout << "Usage: " << app_name << " -h  // print help" << std::endl;
+}
+int main(int argc, char* argv[]) {
+    if(argc != 2) {
+        print_usage(argv[0]);
+        return 1;
+    }
 
-
-int main() {
-    std::string fname = "tmp";
-    auto fname_start_pos = url.rfind('/');
-    if(fname_start_pos != std::string::npos) {
-        fname = url.substr(fname_start_pos + 1, url.size()  - fname_start_pos);
+    if(strcmp(argv[1], "-h") == 0) {
+        print_usage(argv[0]);
+        return 0;
+    }
+    const std::string url = argv[1];
+    std::string fileName = "tmp";
+    auto fileNameStartPos = url.rfind('/');
+    if(fileNameStartPos != std::string::npos) {
+        fileName = url.substr(fileNameStartPos + 1, url.size()  - fileNameStartPos);
     }
     std::ofstream file_out;
     try {
-        file_out.open(fname, std::ios::binary | std::ios::out);
+        file_out.open(fileName, std::ios::binary | std::ios::out);
 
         auto print_data = [&file_out](char* buffer, size_t size) {
             try {
@@ -28,7 +37,7 @@ int main() {
             }
         };
 
-        NCustom::HttpClient httpClient;
+        NCustom::THttpClient httpClient;
         time_t seconds_start = time(nullptr);
         httpClient.Get(url, print_data);
 

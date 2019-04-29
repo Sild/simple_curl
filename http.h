@@ -3,34 +3,59 @@
 #include "tcp.h"
 #include <map>
 #include <thread>
+#include <stack>
+#include <unordered_map>
+#include <mutex>
+#include <condition_variable>
 
 namespace NCustom {
-struct Url {
-    std::string protocol;
-    std::string login;
-    std::string password;
-    std::string host;
-    size_t port = 80;
-    std::string path;
-    std::map<std::string, std::string> get_args;
+struct TUrl {
+    std::string Protocol;
+    std::string Login;
+    std::string Password;
+    std::string Host;
+    size_t Port = 80;
+    std::string Path;
+    std::map<std::string, std::string> GetArgs;
     bool IsValid() const {
-        return protocol == "http" && !host.empty();
+        return Protocol == "http" && !Host.empty();
     }
 };
 
 using DataHandler = std::function<bool(char* buf, size_t size)>;
 
-class HttpClient {
-public:
-    void Get(const std::string &url, const DataHandler& data_handler);
-
+class THttpClient {
 private:
-    static std::string BuildRequest(const Url &url);
-    static void HandleData(char* buffer, size_t size, const DataHandler& data_handler);
-    TCPClient TCPCli;
-    size_t BufferSize=65536;
+    static std::string BuildRequest(const TUrl &url);
+    static void HandleData(char* buffer, size_t size, const DataHandler& dataHandler);
     static constexpr size_t MaxHandleError=5;
+    static constexpr size_t BufferSize = 65536;
     static const size_t MaxThreadCount;
 
+public:
+    void Get(const std::string &url, const DataHandler& dataHandler);
+    THttpClient(): TotalReceived() {
+        for(size_t i = 0; i < MaxThreadCount - 1; i++) {
+            BufferPool.push(new char[BufferSize]);
+        }
+    }
+    ~THttpClient() {
+        while(!BufferPool.empty()) {
+            delete[] BufferPool.top();
+            BufferPool.pop();
+        }
+    }
+private:
+    TTCPClient TCPCli;
+    std::stack<std::thread> ThreadPool;
+    std::stack<char*> BufferPool;
+    std::unordered_map<size_t, std::pair<char*, size_t>> DataPool;
+    std::mutex DataPoolMtx;
+    std::mutex BufferPoolMtx;
+    std::condition_variable DataPoolCond;
+    std::condition_variable BufferPoolCond;
+
+    size_t NextSegmentId = 0;
+    std::atomic_size_t TotalReceived;
 };
 }

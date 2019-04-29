@@ -1,3 +1,4 @@
+### Task
 Необходимо реализовать инструмент для выкачивания файлов из интернета (HTTP-клиент). Из командной строки задается URL, программа должна выкачать содержимое на диск.
 Требования к реализации:
 0. Язык C или C++, компилятор gcc, использовать только возможности стандартной библиотеки (libc или std::).
@@ -8,14 +9,8 @@
 Задание творческое – все, что не оговорено в условии задачи, остается на Ваше усмотрение (например, поддержка различных особенностей HTTP).
 Предпочтительный формат предоставления задания – ссылка на github.
 
-Tests:
-1 thread
-4096 - Download done. Duration: 368 seconds.
-40960 - Download done. Duration: 290 seconds.
-65536 - Download done. Duration: 252 seconds.
 
-
+### Usage:
 ```
- $ time wget -O ~/ubuntu_server.iso "http://releases.ubuntu.com/18.04.2/ubuntu-18.04.2-live-server-amd64.iso"
-real	7m37.909s
+./simple_curl "http://releases.ubuntu.com/18.04.2/ubuntu-18.04.2-live-server-amd64.iso"
 ```
