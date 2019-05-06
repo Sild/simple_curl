@@ -1,0 +1,8 @@
+dist: xenial
+language: gcc
+compiler: clang
+env:
+  - TARGET=simple_curl VERSION=0.0.${TRAVIS_BUILD_NUMBER}
+script:
+- cmake .
+- cmake --build .
