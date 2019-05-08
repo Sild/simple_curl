@@ -8,29 +8,21 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#include <atomic>
-#include <mutex>
 
 namespace NCustom {
 class TTCPClient {
 public:
-    TTCPClient() = default;
+    TTCPClient(const std::string& host, size_t port);
     TTCPClient(const TTCPClient&) = delete;
     TTCPClient operator=(const TTCPClient&) = delete;
 
-    bool Connect(const std::string& host, size_t port);
-    bool Send(const std::string& data);
-    size_t ReadBytes(char* buffer, size_t bufferSize, size_t& segmentCounter);
-    void Disconnect();
-    ~TTCPClient() {
-        Disconnect();
-    }
+    void Send(const std::string& data);
+    size_t ReadBytes(char* buffer, size_t bufferSize);
+    ~TTCPClient();
 
 
 private:
     int Socket = -1;
     struct sockaddr_in Server;
-    size_t SegmentCounter = 0;
-    std::mutex ReadMtx;
 };
 }

@@ -1,39 +1,26 @@
 #include <iostream>
 #include <string>
-#include "http.h"
 #include <fstream>
 #include <time.h>
 
-void print_usage(const std::string& app_name) {
-    std::cout << "Usage: " << app_name << " {url} // download file by given url\n";
-    std::cout << "Usage: " << app_name << " -h  // print help" << std::endl;
-}
+#include "tools.h"
+#include "http.h"
 
-void parseArgs(int argc, char** argv, std::string& url, std::string& fileName) {
-    url = argv[1];
-    fileName = "tmp";
-    if(argc == 3) {
-        fileName = argv[2];
-    } else {
-        auto fileNameStartPos = url.rfind('/');
-        if(fileNameStartPos != std::string::npos && fileNameStartPos < url.size() - 1) {
-            fileName = url.substr(fileNameStartPos + 1, url.size()  - fileNameStartPos);
-        }
-    }
-}
+
+
 int main(int argc, char* argv[]) {
     if(argc != 2 && argc !=3) {
-        print_usage(argv[0]);
+        NCustom::NTools::PrintUsage(argv[0]);
         return 1;
     }
 
     if(strcmp(argv[1], "-h") == 0) {
-        print_usage(argv[0]);
+        NCustom::NTools::PrintUsage(argv[0]);
         return 0;
     }
 
     std::string url, fileName;
-    parseArgs(argc, argv, url, fileName);
+    NCustom::NTools::ParseArgs(argc, argv, url, fileName);
 
     std::ofstream file_out;
     try {

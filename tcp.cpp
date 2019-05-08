@@ -11,24 +11,20 @@
 
 namespace NCustom {
 
-bool TTCPClient::Connect(const std::string& host, size_t port) {
-    std::cerr << "Try to get new connection...\n";
+TTCPClient::TTCPClient(const std::string& host, size_t port) {
+    std::cout << "Try to get new connection...\n";
     if(Socket != -1) {
         throw std::logic_error("Try to create a second connection. Please close the first one.");
     }
-    if(Socket == -1) {
-        Socket = socket(AF_INET , SOCK_STREAM , 0);
-        if (Socket == -1)  {
-            std::cerr << "Fail to create a socket\n";
-            return false;
-        }
+    Socket = socket(AF_INET , SOCK_STREAM , 0);
+    if (Socket == -1)  {
+        throw std::runtime_error("Fail to create a socket\n");
     }
     if(inet_addr(host.c_str()) == -1) {
         struct hostent *he;
         struct in_addr **addr_list;
         if ( (he = gethostbyname( host.c_str() ) ) == NULL) {
-            std::cerr << "Failed to resolve hostname\n";
-            return false;
+            throw std::runtime_error("Failed to resolve hostname\n");
         }
         addr_list = (struct in_addr **) he->h_addr_list;
         for(int i = 0; addr_list[i] != NULL; i++) {
@@ -41,40 +37,25 @@ bool TTCPClient::Connect(const std::string& host, size_t port) {
     Server.sin_family = AF_INET;
     Server.sin_port = htons(port);
     if (connect(Socket , (struct sockaddr *)&Server , sizeof(Server)) < 0) {
-        std::cerr << "Fail to create a connection with remote Host\n";
-        return false;
+        throw std::runtime_error("Fail to create a connection with remote Host\n");
     }
-    std::cerr << "Connection established!\n";
-    return true;
-
+    std::cout << "Connection established!\n";
 }
-bool TTCPClient::Send(const std::string& data) {
-    if(Socket != -1) {
-        if( send(Socket , data.c_str() , strlen( data.c_str() ) , 0) < 0) {
-            std::cerr << "Send failed : " << data << "\n";
-            return false;
-        }
-    } else {
-        return false;
+void TTCPClient::Send(const std::string& data) {
+    if(send(Socket , data.c_str() , strlen( data.c_str() ) , 0) < 0) {
+        throw std::runtime_error("Fail to send data: " + data);
     }
 }
 
-size_t TTCPClient::ReadBytes(char* buffer, size_t bufferSize, size_t& segmentCounter) {
-    if(Socket == -1) {
-        throw std::logic_error("Try to read from closed socket");
-    }
-    std::lock_guard<std::mutex> Lock(ReadMtx);
-    segmentCounter = SegmentCounter++;
-    auto received = recv(Socket, buffer, bufferSize, 0);
-    return received;
+size_t TTCPClient::ReadBytes(char* buffer, size_t bufferSize) {
+    return recv(Socket, buffer, bufferSize, 0);
 }
 
-
-void TTCPClient::Disconnect() {
+TTCPClient::~TTCPClient() {
     if(Socket != -1) {
         close(Socket);
+        Socket = -1;
     }
-    Socket = -1;
 }
 
 }
