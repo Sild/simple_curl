@@ -33,7 +33,6 @@ static void ParseArgs(int argc, char **argv, std::string &url, std::string &file
 
 static NCustom::TUrl BuildUrl(const std::string& url_string) {
     NCustom::TUrl url;
-
     auto protocol_end_pos = url_string.find("://");
     bool protocolSpecified = false;
     if(protocol_end_pos != std::string::npos) {
@@ -68,48 +67,37 @@ static NCustom::TUrl BuildUrl(const std::string& url_string) {
         if(host_end_pos != std::string::npos) {
             url.Host = url_string.substr(host_start_pos, host_end_pos - host_start_pos);
         } else {
-            url.Host = url_string.substr(host_start_pos, url_string.size() - host_start_pos);
+            host_end_pos = url_string.find('?', host_start_pos);
+            if(host_end_pos != std::string::npos) {
+                url.Host = url_string.substr(host_start_pos, host_end_pos - host_start_pos);
+            } else {
+                url.Host = url_string.substr(host_start_pos, url_string.size() - host_start_pos);
+            }
         }
 
     }
     auto path_start_pos = url_string.find('/', host_start_pos);
-    if(path_start_pos == std::string::npos) {
-        return url;
+    if(path_start_pos != std::string::npos) {
+        auto path_end_pos = url_string.find('/', path_start_pos);
+        if(path_end_pos == std::string::npos) {
+            url.Path = url_string.substr(path_start_pos + 1, url_string.size() - path_start_pos - 1);
+            return url;
+        }
+        url.Path = url_string.substr(path_start_pos + 1, path_end_pos - path_start_pos - 1);
     }
-    auto path_end_pos = url_string.find('/', path_start_pos);
-    if(path_end_pos == std::string::npos) {
-        url.Path = url_string.substr(path_start_pos + 1, url_string.size() - path_start_pos - 1);
-        return url;
-    }
-    url.Path = url_string.substr(path_start_pos + 1, path_end_pos - path_start_pos - 1);
 
-    auto start_params_pos = url_string.find('?', path_start_pos) + 1;
-    auto separator_pos = 0;
-    std::string key, value;
-    for(size_t cur_pos = start_params_pos; cur_pos < url_string.size(); ++cur_pos) {
-        if(url_string[cur_pos] == '=') {
-            separator_pos = cur_pos;
-        }
-        if(url_string[cur_pos] == '&') {
-            if(separator_pos == 0) {
-                continue;
-            }
-            key = url_string.substr(start_params_pos, separator_pos - start_params_pos);
-            value = url_string.substr(separator_pos + 1, cur_pos - separator_pos - 1);
-            if(!key.empty() && !value.empty()) {
-                url.GetArgs.insert(std::make_pair(key, value));
-            }
-            separator_pos = 0;
-            start_params_pos = cur_pos + 1;
-        }
+
+    auto start_params_pos = url_string.find('?');
+    if(start_params_pos == std::string::npos) {
+        return url;
     }
-    if(separator_pos != 0) {
-        key = url_string.substr(start_params_pos, separator_pos - start_params_pos);
-        value = url_string.substr(separator_pos + 1, url_string.size() - separator_pos - 1);
-        if(!key.empty() && !value.empty()) {
-            url.GetArgs.insert(std::make_pair(key, value));
-        }
+    auto end_param_pos = url_string.find('#', start_params_pos);
+    if(end_param_pos == std::string::npos) {
+        url.GetArgs = url_string.substr(start_params_pos + 1, url_string.size() - start_params_pos - 1);
+    } else {
+        url.GetArgs = url_string.substr(start_params_pos + 1, end_param_pos - start_params_pos - 1);
     }
+    std::cout << url.GetArgs << std::endl;
     return url;
 }
 

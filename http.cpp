@@ -53,7 +53,7 @@ void THttpClient::Get(const std::string &url_string, const DataHandler& dataHand
 std::string THttpClient::BuildRequest(const NCustom::TUrl& url) {
     std::stringstream stream;
     stream <<
-    "GET /" << url.Path << " HTTP/1.1\r\n"
+    "GET /" << url.Path << "?" << url.GetArgs << " HTTP/1.1\r\n"
     "Host: " << url.Host << "\r\n"
     "Connection: keep-alive\r\n"
     "Upgrade-Insecure-Requests: 1\r\n";
