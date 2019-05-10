@@ -115,10 +115,10 @@ static size_t ExtractContentLength(const char* c_str) {
 }
 
 static char* StripHeaders(char* buffer, size_t& size) {
-    auto headerStartPos = strstr(buffer, "\r\n\r\n");
-    if(headerStartPos != NULL) {
-        size -= (headerStartPos - buffer);
-        return headerStartPos;
+    auto headerEndPos = strstr(buffer, "\r\n\r\n");
+    if(headerEndPos != NULL) {
+        size -= (headerEndPos + 4 - buffer);
+        return headerEndPos + 4;
     }
     return buffer;
 }

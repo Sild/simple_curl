@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
     try {
         file_out.open(fileName, std::ios::binary | std::ios::out);
 
-        auto print_data = [&file_out](char* buffer, size_t size) {
+        auto print_data = [&file_out](const char* buffer, size_t size) {
             try {
                 file_out.write(buffer, size);
                 return true;

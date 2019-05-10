@@ -12,12 +12,17 @@
 
 namespace NCustom {
 
-void THttpClient::HandleData(char *buffer, size_t size, const NCustom::DataHandler& dataHandler) {
+void THttpClient::HandleData(const char *buffer, size_t size, const NCustom::DataHandler& dataHandler) {
     size_t errorCounter = 0;
     while(!dataHandler(buffer, size) && ++errorCounter < MAX_HANDLE_ERRORS);
     if(errorCounter >= MAX_HANDLE_ERRORS) {
         throw std::runtime_error("Too many fails in dataHandler");
     }
+}
+
+void THttpClient::WriteProgress(size_t current, size_t total, size_t percent) {
+    std::cout <<  "Progress: " << percent << "%: " << current << " / " << total << "\n";
+
 }
 
 void THttpClient::Get(const std::string &url_string, const DataHandler& dataHandler) {
@@ -40,14 +45,58 @@ void THttpClient::Get(const std::string &url_string, const DataHandler& dataHand
     HandleData(noHeaderBuffer, received, dataHandler);
     TotalReceived = received;
 
+
+
+    auto writeThread = std::thread([this, dataHandler]() mutable {
+        char* data = nullptr;
+        size_t size = 0;
+        while(!JobDone) {
+            auto lock = std::unique_lock(DataMtx);
+            if(DataPool.empty()) {
+                DataCondVar.wait(lock, [this](){return !this->DataPool.empty() || this->JobDone;});
+            }
+            if(DataPool.empty()) {
+                continue;
+            }
+
+            std::tie(data, size) = DataPool.front();
+            this->HandleData(data, size, dataHandler);
+
+            DataPool.pop();
+            DataSize.fetch_sub(1);
+            lock.unlock();
+        }
+    });
+
+    char altBuffer[BUFFER_SIZE];
+    size_t percent = 0;
+    size_t newPercent = 0;
+    WriteProgress(0, 0, 0);
+    char* actualBuffer = buffer;
     while(this->TotalReceived < contentLength) {
-        received = tcpClient.ReadBytes(buffer, THttpClient::BUFFER_SIZE);
-        auto handlerThread = std::thread(HandleData, buffer, received, dataHandler);
-        handlerThread.join();
+        while(DataSize == 2) {
+            DataCondVar.notify_one();
+        }
+        received = tcpClient.ReadBytes(actualBuffer, THttpClient::BUFFER_SIZE);
+
+        auto lock = std::unique_lock(DataMtx);
+        this->DataPool.emplace(actualBuffer, received);
+        lock.unlock();
+        DataSize.fetch_add(1);
+        DataCondVar.notify_one();
+
         this->TotalReceived += received;
+        newPercent = this->TotalReceived * 100 / contentLength;
+        if(newPercent != percent) {
+            percent = newPercent;
+            WriteProgress(this->TotalReceived, contentLength, percent);
+        }
+        actualBuffer = actualBuffer == buffer ? altBuffer : buffer;
+
     }
-
-
+    JobDone.store(true);
+    DataCondVar.notify_one();
+    writeThread.join();
 }
 
 std::string THttpClient::BuildRequest(const NCustom::TUrl& url) {
