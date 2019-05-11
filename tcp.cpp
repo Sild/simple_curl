@@ -13,9 +13,6 @@ namespace NCustom {
 
 TTCPClient::TTCPClient(const std::string& host, size_t port) {
     std::cout << "Try to get new connection...\n";
-    if(Socket != -1) {
-        throw std::logic_error("Try to create a second connection. Please close the first one.");
-    }
     Socket = socket(AF_INET , SOCK_STREAM , 0);
     if (Socket == -1)  {
         throw std::runtime_error("Fail to create a socket\n");

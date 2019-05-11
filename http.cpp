@@ -27,7 +27,7 @@ void THttpClient::WriteProgress(size_t current, size_t total, size_t percent) {
 
 void THttpClient::Get(const std::string &url_string, const DataHandler& dataHandler) {
     const auto url = NTools::BuildUrl(url_string);
-    const auto invalidReason = url.Validate();
+    const auto invalidReason = NTools::ValidateUrl(url);
     if(!invalidReason.empty()) {
         throw std::runtime_error("Wrong url: " + invalidReason);
     }

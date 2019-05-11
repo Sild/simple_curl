@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
         time_t seconds_start = time(nullptr);
         httpClient.Get(url, print_data);
 
-        std::cerr << "Download done. Duration: " << time(NULL) - seconds_start << " seconds.\n";
+        std::cout << "Download done. Duration: " << time(NULL) - seconds_start << " seconds.\n";
     } catch(std::exception& e) {
         std::cerr << e.what() << "\n";
         file_out.close();

@@ -124,4 +124,14 @@ static char* StripHeaders(char* buffer, size_t& size) {
     return buffer;
 }
 
+std::string ValidateUrl(const TUrl& url)  {
+    if(url.Protocol != "http") {
+        return "Invalid protocol";
+    }
+    if(url.Host.empty()) {
+        return "Fail to parse hostname";
+    }
+    return "";
+}
+
 }
