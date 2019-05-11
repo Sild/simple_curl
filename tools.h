@@ -14,8 +14,9 @@ static void PrintUsage(const std::string &app_path) {
     } else {
         app_name = app_path;
     }
-    std::cout << "Usage: ." << app_name << " {url} // download file by given url\n";
-    std::cout << "Usage: ." << app_name << " -h  // print help" << std::endl;
+    std::cout << "Usage: ." << app_name << " {url}        // download file by given url\n";
+    std::cout << "Usage: ." << app_name << " {url} {path} // download file by given url to specified path\n";
+    std::cout << "Usage: ." << app_name << " -h           // print help" << std::endl;
 }
 
 static void ParseArgs(int argc, char **argv, std::string &url, std::string &fileName) {
