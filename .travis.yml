@@ -1,8 +1,17 @@
 dist: xenial
-language: gcc
-compiler: clang
+language: cpp
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - gcc-8
+      - g++-8
 env:
   - TARGET=simple_curl VERSION=0.0.${TRAVIS_BUILD_NUMBER}
 script:
+- export CC=gcc-8
+- export CXX=g++-8
 - cmake .
 - cmake --build .
+- ./simple_curl http://www.textfiles.com/virus/virussum.txt

@@ -102,36 +102,5 @@ static NCustom::TUrl BuildUrl(const std::string& url_string) {
     return url;
 }
 
-static size_t ExtractContentLength(const char* c_str) {
-    auto buffer_str = std::string(c_str);
-    auto content_len_start_pos = buffer_str.find("Content-Length: ");
-    if(content_len_start_pos == std::string::npos) {
-        throw std::runtime_error("Unknown Content-Length. Is it a binary file?\n");
-    }
-    auto next_line_start = buffer_str.find("\r\n", content_len_start_pos);
-    if(next_line_start == std::string::npos || content_len_start_pos + 16 >= next_line_start) {
-        throw std::runtime_error("Invalid headers");
-    }
-    return std::stol(buffer_str.substr(content_len_start_pos + 16, next_line_start - content_len_start_pos - 16));
-}
-
-static char* StripHeaders(char* buffer, size_t& size) {
-    auto headerEndPos = strstr(buffer, "\r\n\r\n");
-    if(headerEndPos != NULL) {
-        size -= (headerEndPos + 4 - buffer);
-        return headerEndPos + 4;
-    }
-    return buffer;
-}
-
-std::string ValidateUrl(const TUrl& url)  {
-    if(url.Protocol != "http") {
-        return "Invalid protocol";
-    }
-    if(url.Host.empty()) {
-        return "Fail to parse hostname";
-    }
-    return "";
-}
 
 }

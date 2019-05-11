@@ -7,7 +7,7 @@
 #include "http.h"
 #include "tools.h"
 #include "base64.h"
-#include "tcp.h"
+#include "cycle_buffer.h"
 
 
 namespace NCustom {
@@ -25,28 +25,89 @@ void THttpClient::WriteProgress(size_t current, size_t total, size_t percent) {
 
 }
 
+std::string TUrl::Validate() const  {
+    if(Protocol != "http") {
+        return "Invalid protocol";
+    }
+    if(Host.empty()) {
+        return "Fail to parse hostname";
+    }
+    return "";
+}
+
+
+void THttpClient::Reset() {
+    TotalReceived = 0;
+    ContentLength = 0;
+    MetaHandled = false;
+    JobDone = false;
+}
+
+// return input buffer if headers end not-found
+// return pointer to body begin if headers end found.
+// also set-up Content-Length if find it.
+char* THttpClient::HandleMeta(char* buffer, size_t& size) {
+    auto contentLenStartPos = strstr(buffer, "Content-Length: ");
+    if(contentLenStartPos == NULL && ContentLength == 0) {
+        return buffer;
+    } else if(contentLenStartPos != NULL) {
+        auto contentLenEndPos = strstr(contentLenStartPos + 2, "\r\n");
+        if(contentLenEndPos != NULL) {
+            ContentLength = std::stol(std::string(contentLenStartPos + 16));
+        }
+    }
+    auto headerEndPos = strstr(buffer, "\r\n\r\n");
+    if(headerEndPos != NULL) {
+        MetaHandled = true;
+        size -= (headerEndPos + 4 - buffer);
+        return headerEndPos + 4;
+    } else {
+        return buffer;
+    }
+}
+
+void THttpClient::GetHeaders(TTCPClient& tcpClient, const DataHandler& dataHandler) {
+    Reset();
+
+    char* usefulData = nullptr;
+    TCycleBuffer<BUFFER_SIZE * 2> cycleBuffer;
+    char buffer[BUFFER_SIZE * 2];
+    size_t received = 0;
+    while(!MetaHandled) {
+        received = tcpClient.ReadBytes(buffer, BUFFER_SIZE - 1);
+        if(received == 0) {
+            throw std::runtime_error("Fail to detect headers in server response.");
+        }
+        cycleBuffer.Append(buffer, received);
+        received = cycleBuffer.GetData(buffer, BUFFER_SIZE * 2);
+        buffer[received] = '\0';
+        usefulData = HandleMeta(buffer, received);
+    }
+
+    if(ContentLength == 0) {
+        throw std::runtime_error("Unknown Content-Length. Is it a binary file?\n");
+    }
+    TotalReceived = received;
+    usefulData[received] = '\0';
+    THttpClient::HandleData(usefulData, received, dataHandler);
+}
+
+
 void THttpClient::Get(const std::string &url_string, const DataHandler& dataHandler) {
     const auto url = NTools::BuildUrl(url_string);
-    const auto invalidReason = NTools::ValidateUrl(url);
+    const auto invalidReason = url.Validate();
     if(!invalidReason.empty()) {
         throw std::runtime_error("Wrong url: " + invalidReason);
     }
     TTCPClient tcpClient(url.Host, url.Port);
-    tcpClient.Send(BuildRequest(url));
+    tcpClient.Send(THttpClient::BuildRequest(url));
 
-    char buffer[BUFFER_SIZE];
-    auto received = tcpClient.ReadBytes(buffer, BUFFER_SIZE - 1);
+    GetHeaders(tcpClient, dataHandler);
 
-    buffer[received] = '\0';
-    auto contentLength = NTools::ExtractContentLength(buffer);
-    std::cout << "Downloading " << contentLength << " bytes...\n";
+    std::cout << "Downloading " << ContentLength << " bytes...\n";
 
-    auto noHeaderBuffer = NTools::StripHeaders(buffer, received);
-    HandleData(noHeaderBuffer, received, dataHandler);
-    TotalReceived = received;
-
-
-
+    char bufferFirst[BUFFER_SIZE], bufferSecond[BUFFER_SIZE];
+    size_t received = 0;
     auto writeThread = std::thread([this, dataHandler]() mutable {
         char* data = nullptr;
         size_t size = 0;
@@ -60,7 +121,7 @@ void THttpClient::Get(const std::string &url_string, const DataHandler& dataHand
             }
 
             std::tie(data, size) = DataPool.front();
-            this->HandleData(data, size, dataHandler);
+            THttpClient::HandleData(data, size, dataHandler);
 
             DataPool.pop();
             DataSize.fetch_sub(1);
@@ -68,30 +129,30 @@ void THttpClient::Get(const std::string &url_string, const DataHandler& dataHand
         }
     });
 
-    char altBuffer[BUFFER_SIZE];
+
     size_t percent = 0;
     size_t newPercent = 0;
-    WriteProgress(0, 0, 0);
-    char* actualBuffer = buffer;
-    while(this->TotalReceived < contentLength) {
+    THttpClient::WriteProgress(TotalReceived, ContentLength, TotalReceived * 100 / ContentLength);
+    char* actualBuffer = bufferFirst;
+    while(TotalReceived < ContentLength) {
         while(DataSize == 2) {
             DataCondVar.notify_one();
         }
         received = tcpClient.ReadBytes(actualBuffer, THttpClient::BUFFER_SIZE);
 
         auto lock = std::unique_lock(DataMtx);
-        this->DataPool.emplace(actualBuffer, received);
+        DataPool.emplace(actualBuffer, received);
         lock.unlock();
         DataSize.fetch_add(1);
         DataCondVar.notify_one();
 
-        this->TotalReceived += received;
-        newPercent = this->TotalReceived * 100 / contentLength;
+        TotalReceived += received;
+        newPercent = TotalReceived * 100 / ContentLength;
         if(newPercent != percent) {
             percent = newPercent;
-            WriteProgress(this->TotalReceived, contentLength, percent);
+            THttpClient::WriteProgress(TotalReceived, ContentLength, percent);
         }
-        actualBuffer = actualBuffer == buffer ? altBuffer : buffer;
+        actualBuffer = actualBuffer == bufferFirst ? bufferSecond : bufferFirst;
 
     }
     JobDone.store(true);
