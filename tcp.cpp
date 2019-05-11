@@ -49,10 +49,7 @@ size_t TTCPClient::ReadBytes(char* buffer, size_t bufferSize) {
 }
 
 TTCPClient::~TTCPClient() {
-    if(Socket != -1) {
-        close(Socket);
-        Socket = -1;
-    }
+    close(Socket);
 }
 
 }
