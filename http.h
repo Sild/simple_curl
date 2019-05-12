@@ -44,8 +44,8 @@ private:
     std::mutex DataMtx;
     std::condition_variable DataCondVar;
     std::queue<std::pair<char*, size_t>> DataPool;
-    std::atomic_size_t DataSize = 0;
-    std::atomic_bool JobDone = false;
+    std::atomic_size_t DataSize{0};
+    std::atomic_bool JobDone{false};
 
 };
 }

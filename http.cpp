@@ -40,7 +40,8 @@ void THttpClient::Reset() {
     TotalReceived = 0;
     ContentLength = 0;
     MetaHandled = false;
-    JobDone = false;
+    DataSize.store(0);
+    JobDone.store(false);
 }
 
 // return input buffer if headers end not-found

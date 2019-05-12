@@ -8,10 +8,10 @@ addons:
       - gcc-8
       - g++-8
 env:
-  - TARGET=simple_curl VERSION=0.0.${TRAVIS_BUILD_NUMBER}
+  - CC=gcc-8 CXX=g++-8
 script:
-- export CC=gcc-8
-- export CXX=g++-8
-- cmake .
+- sudo ln -sf /usr/bin/g++-8 /usr/bin/g++
+- sudo ln -sf /usr/bin/gcc-8 /usr/bin/gcc
+- cmake -DCMAKE_VERBOSE_MAKEFILE=ON .
 - cmake --build .
 - ./simple_curl http://www.textfiles.com/virus/virussum.txt
