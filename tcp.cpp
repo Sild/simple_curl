@@ -17,7 +17,7 @@ TTCPClient::TTCPClient(const std::string& host, size_t port) {
     if (Socket == -1)  {
         throw std::runtime_error("Fail to create a socket\n");
     }
-    if(inet_addr(host.c_str()) == -1) {
+    if(inet_addr(host.c_str()) == INADDR_NONE) {
         struct hostent *he;
         struct in_addr **addr_list;
         if ( (he = gethostbyname( host.c_str() ) ) == NULL) {

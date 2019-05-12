@@ -6,7 +6,7 @@
 
 namespace NCustom::NTools {
 
-static void PrintUsage(const std::string &app_path) {
+inline void PrintUsage(const std::string &app_path) {
     auto start_pos = app_path.rfind('/');
     std::string app_name;
     if(start_pos != std::string::npos) {
@@ -19,7 +19,7 @@ static void PrintUsage(const std::string &app_path) {
     std::cout << "Usage: ." << app_name << " -h           // print help" << std::endl;
 }
 
-static void ParseArgs(int argc, char **argv, std::string &url, std::string &fileName) {
+inline void ParseArgs(int argc, char **argv, std::string &url, std::string &fileName) {
     url = argv[1];
     fileName = "tmp";
     if(argc == 3) {
@@ -32,7 +32,7 @@ static void ParseArgs(int argc, char **argv, std::string &url, std::string &file
     }
 }
 
-static NCustom::TUrl BuildUrl(const std::string& url_string) {
+inline NCustom::TUrl BuildUrl(const std::string& url_string) {
     NCustom::TUrl url;
     auto protocol_end_pos = url_string.find("://");
     bool protocolSpecified = false;

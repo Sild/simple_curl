@@ -15,7 +15,7 @@ public:
     size_t GetData(char *buffer, size_t requestedSize) {
         size_t availableSize = requestedSize > TSize ? TSize : requestedSize;
         if(!CycleReady) {
-            availableSize = requestedSize > (CurrentEnd - Begin) ? (CurrentEnd - Begin) : requestedSize;
+            availableSize = requestedSize > static_cast<size_t>(CurrentEnd - Begin) ? (CurrentEnd - Begin) : requestedSize;
             std::memcpy(buffer, Begin, availableSize);
         } else {
             size_t toEnd = TSize - (CurrentEnd - Begin);
