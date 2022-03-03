@@ -20,5 +20,11 @@ perf: clogreader.o perf.o
 perf.o:
 	$(CC) $(CFLAGS) $(TESTDIR)/perf.cpp
 
+matches: clogreader.o matches.o
+	$(CC) clogreader.o matches.o -o matches && ./matches
+
+matches.o:
+	$(CC) $(CFLAGS) $(TESTDIR)/matches.cpp
+
 clean:
-	rm -f CLogReader.o main.o main perf.o perf
+	rm -f CLogReader.o main.o main perf.o perf matches.o matches

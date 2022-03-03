@@ -19,6 +19,7 @@ public:
 	bool SetFilter(const char* aFilter);
 	bool GetNextLine(char *aBuf, const int aBufSize);
 private:
+    bool LineMatch(const char* aBuf); // expect null-term buffer
     char* m_Filter;
     char* m_LineBuffer;
     FILE* m_File;
