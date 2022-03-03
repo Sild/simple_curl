@@ -14,7 +14,7 @@ CLogReader::~CLogReader() {
 };
 
 bool CLogReader::Open(const char* aPath) {
-    Close();
+    Close(); // should I warn if any file already opened?
     m_File = fopen(aPath, "r");
     return m_File != NULL;
 }
