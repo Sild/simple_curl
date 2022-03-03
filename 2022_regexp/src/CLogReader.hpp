@@ -19,7 +19,7 @@ public:
 	bool SetFilter(const char* aFilter);
 	bool GetNextLine(char *aBuf, const int aBufSize);
 private:
-	char* m_Filter;
-	FILE* m_File;
-
+    char* m_Filter;
+    char* m_LineBuffer;
+    FILE* m_File;
 };

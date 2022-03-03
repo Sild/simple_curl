@@ -5,11 +5,13 @@
 
 CLogReader::CLogReader()
 : m_Filter(new char[1024])
+, m_LineBuffer(NULL)
 , m_File(NULL)
 {};
 
 CLogReader::~CLogReader() {
     delete[] m_Filter;
+    free(m_LineBuffer);
     Close();
 };
 
@@ -35,10 +37,9 @@ bool CLogReader::GetNextLine(char *aBuf, const int aBufSize) {
         return false;
     }
 
-    char* sLine = NULL;
     size_t sLen = 0;
     ssize_t sRead;
-    sRead = getline(&sLine, &sLen, m_File);
+    sRead = getline(&m_LineBuffer, &sLen, m_File);
     if (sRead == -1)
     {
         fprintf(stderr, "EOF reached\n"); 
@@ -51,7 +52,6 @@ bool CLogReader::GetNextLine(char *aBuf, const int aBufSize) {
         return false; // how to know about low buffer?
     }
 
-    memmove(aBuf, sLine, sRead + 1); // copy null-term to aBuf too
-    free(sLine); // move sLine to class member
+    memmove(aBuf, m_LineBuffer, sRead + 1); // copy null-term to aBuf too
     return true;
 }
