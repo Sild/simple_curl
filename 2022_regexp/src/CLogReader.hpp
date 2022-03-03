@@ -8,6 +8,7 @@
 // 3) why interface not support RAII?
 // 4) should it work in concurrent aplication?
 // 5) interface is unobvious. why bool return everywhere?
+// 6) ? - one any symbol is non-standart behaviour
 
 class CLogReader
 {
