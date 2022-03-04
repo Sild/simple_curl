@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 
+#include "Matcher.hpp"
+
 // quetions:
 // 1) when I should return false on setFilter? If filter already set? Or if it's invalid (by supported semantic)?
 // 2) if second, should I reset the file reading before return the new match file?
@@ -10,8 +12,7 @@
 // 5) interface is unobvious. why bool return everywhere?
 // 6) ? - one any symbol is non-standart behaviour
 
-class CLogReader
-{
+class CLogReader {
 public:
 	CLogReader();
 	~CLogReader();
@@ -21,7 +22,7 @@ public:
 	bool GetNextLine(char *aBuf, const int aBufSize);
 private:
     bool LineMatch(const char* aBuf); // expect null-term buffer
-    char* m_Filter;
     char* m_LineBuffer;
     FILE* m_File;
+    Matcher m_Matcher;
 };

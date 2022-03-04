@@ -50,5 +50,5 @@ int main()
 {
     test_no_filter();
     test_low_buffer();
-    printf("tests passed!\n");
+    printf("clogreader tests passed!\n");
 }

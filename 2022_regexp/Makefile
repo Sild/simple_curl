@@ -5,22 +5,31 @@ TESTDIR=./tests
 
 all: clean test
 
-test: perf matches
+test: test_matcher test_perf test_clogreader 
 
-clogreader.o:
-	$(CC) $(CFLAGS) $(SRCDIR)/CLogReader.cpp
+clogreader.o: matcher.o
+	$(CC) $(CFLAGS) $(SRCDIR)/CLogReader.cpp -o clogreader.o
 
-perf: clogreader.o perf.o
-	$(CC) clogreader.o perf.o -o perf && ./perf 2>/dev/null
+matcher.o:
+	$(CC) $(CFLAGS) $(SRCDIR)/Matcher.cpp -o matcher.o
 
-perf.o:
-	$(CC) $(CFLAGS) $(TESTDIR)/perf.cpp
+test_perf: clogreader.o test_perf.o matcher.o
+	$(CC) clogreader.o test_perf.o matcher.o -o test_perf && ./test_perf 2>/dev/null
 
-matches: clogreader.o matches.o
-	$(CC) clogreader.o matches.o -o matches && ./matches
+test_perf.o:
+	$(CC) $(CFLAGS) $(TESTDIR)/perf.cpp -o test_perf.o
 
-matches.o:
-	$(CC) $(CFLAGS) $(TESTDIR)/matches.cpp
+test_clogreader: clogreader.o matcher.o test_clogreader.o 
+	$(CC) clogreader.o test_clogreader.o matcher.o -o test_clogreader && ./test_clogreader 2>/dev/null
+
+test_clogreader.o:
+	$(CC) $(CFLAGS) $(TESTDIR)/clogreader.cpp -o test_clogreader.o
+
+test_matcher: test_matcher.o matcher.o
+	$(CC) matcher.o test_matcher.o -o test_matcher && ./test_matcher 2>/dev/null
+
+test_matcher.o:
+	$(CC) $(CFLAGS) $(TESTDIR)/matcher.cpp -o test_matcher.o
 
 clean:
-	rm -f CLogReader.o perf.o perf matches.o matches
+	rm -f clogreader.o matcher.o test_perf.o test_perf test_clogreader.o test_clogreader test_matcher.o test_matcher

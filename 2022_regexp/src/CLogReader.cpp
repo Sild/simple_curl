@@ -4,14 +4,12 @@
 #include <string.h>
 
 CLogReader::CLogReader()
-: m_Filter(NULL)
-, m_LineBuffer(NULL)
+: m_LineBuffer(NULL)
 , m_File(NULL)
+, m_Matcher(NULL)
 {};
 
 CLogReader::~CLogReader() {
-    delete m_Filter;
-    m_Filter = NULL; // unnecessary, but more clear
     free(m_LineBuffer);
     Close();
 };
@@ -29,7 +27,7 @@ void CLogReader::Close() {
 }
 
 bool CLogReader::SetFilter(const char* aFilter) {
-    return true;
+    return m_Matcher.SetFilter(aFilter);
 }
 
 bool CLogReader::GetNextLine(char *aBuf, const int aBufSize) {
@@ -39,7 +37,7 @@ bool CLogReader::GetNextLine(char *aBuf, const int aBufSize) {
     }
 
     size_t sLen = 0;
-    ssize_t sRead;
+    ssize_t sRead = 0;
     sRead = getline(&m_LineBuffer, &sLen, m_File);
     if (sRead == -1) {
         fprintf(stderr, "EOF reached\n"); 
@@ -61,8 +59,5 @@ bool CLogReader::GetNextLine(char *aBuf, const int aBufSize) {
 
 bool CLogReader::LineMatch(const char* aBuffer)
 {
-    if (m_Filter == NULL)
-        return true; // is it ok?
-
-    return false;
+    return m_Matcher.Complient(aBuffer);
 }
