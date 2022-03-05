@@ -1,8 +1,8 @@
 #pragma once
 
 // may be implemented inside CLogReader.cpp
-// support ^$ regexp-features
-// also support ? as one_any_char, * as any_any_char
+// support ? as one_any_char, * as any_any_char
+// support $ and ^ skipped becouse of inconsistent behaviour
 class Matcher {
 public:
     Matcher(const char* aFilter);

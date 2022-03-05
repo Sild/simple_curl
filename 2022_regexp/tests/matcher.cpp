@@ -3,16 +3,6 @@
 
 #include "../src/Matcher.hpp"
 
-void test_begin_end() {
-    Matcher sMatcher("^123$");
-    assert(sMatcher.Complient("123"));
-    assert(!sMatcher.Complient("1123"));
-    assert(!sMatcher.Complient("1233"));
-    assert(!sMatcher.Complient("1"));
-    assert(!sMatcher.Complient("12"));
-    assert(!sMatcher.Complient("23"));
-};
-
 void test_asterisk() {
     Matcher sMatcher("1*23*");
     assert(sMatcher.Complient("123"));
@@ -46,14 +36,6 @@ void test_set_filter() {
     assert(!sMatcher.Complient("123"));
     assert(sMatcher.Complient("456"));
 
-    sMatcher.SetFilter("");
-    assert(sMatcher.Complient("123"));
-    assert(sMatcher.Complient("456"));
-
-    sMatcher.SetFilter(NULL);
-    assert(sMatcher.Complient("123"));
-    assert(sMatcher.Complient("456"));
-
     sMatcher.SetFilter("999");
     assert(!sMatcher.Complient("123"));
     assert(!sMatcher.Complient("456"));
@@ -62,20 +44,48 @@ void test_set_filter() {
     assert(sMatcher.Complient("123"));
     assert(!sMatcher.Complient("456"));
 
-    sMatcher.SetFilter('\0');
-    assert(sMatcher.Complient("123"));
-    assert(sMatcher.Complient("456"));
-
     sMatcher.SetFilter("123");
     assert(sMatcher.Complient("123"));
     assert(!sMatcher.Complient("456"));
 }
 
+void test_some_cases() {
+    Matcher sMatcher("5*7");
+    assert(sMatcher.Complient("567"));
+
+    sMatcher.SetFilter("5?7");
+    assert(sMatcher.Complient("567"));
+
+    sMatcher.SetFilter("2*");
+    assert(sMatcher.Complient("234"));
+    assert(!sMatcher.Complient("a234"));
+
+    sMatcher.SetFilter("*2*");
+    assert(sMatcher.Complient("234"));
+    assert(sMatcher.Complient("a234"));
+
+    sMatcher.SetFilter("*2");
+    assert(sMatcher.Complient("2"));
+    assert(sMatcher.Complient("a2"));
+    assert(sMatcher.Complient("aa2"));
+    assert(!sMatcher.Complient("234"));
+    assert(!sMatcher.Complient("a234"));
+
+    sMatcher.SetFilter("2*");
+    assert(sMatcher.Complient("234"));
+    assert(!sMatcher.Complient("a234"));
+
+    sMatcher.SetFilter("4");
+    assert(!sMatcher.Complient("234"));
+    assert(!sMatcher.Complient("2346"));
+    assert(!sMatcher.Complient("a234z"));
+}
+
 int main() {
-    test_begin_end();
     test_asterisk();
     test_question();
     test_set_filter();
+    test_some_cases();
 
     printf("\033[0;32m");
     printf("matcher tests passed!\n");

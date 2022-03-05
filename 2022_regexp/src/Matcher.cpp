@@ -1,6 +1,7 @@
 #include "Matcher.hpp"
 
 #include <string.h>
+#include <assert.h>
 
 namespace {
     // modify the https://www.cs.princeton.edu/courses/archive/spr09/cos333/beautiful.html
@@ -11,7 +12,7 @@ namespace {
     {
         if (aFilter[0] == '*')
             return matchstar(aFilter+1, aLine);
-        if (aFilter[0] == '\0' || (aFilter[0] == '$' && aFilter[1] == '\0'))
+        if (aFilter[0] == '\0')
             return *aLine == '\0';
         if (*aLine != '\0' && (aFilter[0] == '?' || aFilter[0] == *aLine))
             return matchhere(aFilter+1, aLine+1);
@@ -21,6 +22,8 @@ namespace {
     /* matchstar: search for c*regexp at beginning of text */
     bool matchstar(char *aFilter, const char *aLine)
     {
+        if (aFilter[0] == '\0')
+            return true;
         do {    /* a * matches zero or more instances */
             if (matchhere(aFilter, aLine))
                 return true;
@@ -29,15 +32,9 @@ namespace {
     }
 
     bool match(char* aFilter, const char* aLine) {
-        if (aFilter[0] == '^')
-            return matchhere(aFilter + 1, aLine);
-        // bad asymtotic M * N =(
-        do {    /* must look even if string is empty */
-            if (matchhere(aFilter, aLine))
-                return true;
-        } while (*aLine++ != '\0');
-
-        return false;
+        assert(aFilter != NULL);
+        // bad asymtotic M * N for start case =(
+        return matchhere(aFilter, aLine);
     }
 }
 
@@ -60,6 +57,8 @@ bool Matcher::SetFilter(const char* aFilter) {
         m_FilterEmpty = true;
         return true;
     }
+
+    // need some validation of aFilter?
     
     // may be optimized to reuse old memory, then should handle aFilter == NULL withour delete[]
     {
