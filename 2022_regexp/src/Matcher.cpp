@@ -31,7 +31,7 @@ namespace {
     bool match(char* aFilter, const char* aLine) {
         if (aFilter[0] == '^')
             return matchhere(aFilter + 1, aLine);
-
+        // bad asymtotic M * N =(
         do {    /* must look even if string is empty */
             if (matchhere(aFilter, aLine))
                 return true;
@@ -54,7 +54,7 @@ Matcher::~Matcher() {
 }
 
 bool Matcher::SetFilter(const char* aFilter) {
-    if (aFilter == NULL) {
+    if (aFilter == NULL || aFilter == '\0') {
         delete[] m_Filter;
         m_Filter = NULL;
         m_FilterEmpty = true;

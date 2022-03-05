@@ -38,10 +38,44 @@ void test_question() {
     assert(!sMatcher.Complient("12233"));
 }
 
+void test_set_filter() {
+    Matcher sMatcher("123");
+    assert(sMatcher.Complient("123"));
+    assert(!sMatcher.Complient("456"));
+    sMatcher.SetFilter("456");
+    assert(!sMatcher.Complient("123"));
+    assert(sMatcher.Complient("456"));
+
+    sMatcher.SetFilter("");
+    assert(sMatcher.Complient("123"));
+    assert(sMatcher.Complient("456"));
+
+    sMatcher.SetFilter(NULL);
+    assert(sMatcher.Complient("123"));
+    assert(sMatcher.Complient("456"));
+
+    sMatcher.SetFilter("999");
+    assert(!sMatcher.Complient("123"));
+    assert(!sMatcher.Complient("456"));
+
+    sMatcher.SetFilter("123");
+    assert(sMatcher.Complient("123"));
+    assert(!sMatcher.Complient("456"));
+
+    sMatcher.SetFilter('\0');
+    assert(sMatcher.Complient("123"));
+    assert(sMatcher.Complient("456"));
+
+    sMatcher.SetFilter("123");
+    assert(sMatcher.Complient("123"));
+    assert(!sMatcher.Complient("456"));
+}
+
 int main() {
     test_begin_end();
     test_asterisk();
     test_question();
+    test_set_filter();
 
     printf("\033[0;32m");
     printf("matcher tests passed!\n");

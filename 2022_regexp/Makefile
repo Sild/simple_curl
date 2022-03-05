@@ -29,7 +29,7 @@ test_matcher: clean test_matcher.o matcher.o
 	$(CC) matcher.o test_matcher.o -o test_matcher && ./test_matcher 2>/dev/null
 
 test_matcher.o:
-	$(CC) $(CFLAGS) $(TESTDIR)/matcher.cpp -o test_matcher.o
+	$(CC) $(CFLAGS) -Wno-non-literal-null-conversion $(TESTDIR)/matcher.cpp -o test_matcher.o
 
 test_perf_matcher: clean test_perf_matcher.o matcher.o
 	$(CC) matcher.o test_perf_matcher.o -o test_perf_matcher && ./test_perf_matcher 2>/dev/null
