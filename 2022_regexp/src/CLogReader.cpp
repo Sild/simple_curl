@@ -41,6 +41,7 @@ bool CLogReader::GetNextLine(char *aBuf, const int aBufSize) {
     ssize_t sRead = 0;
     bool sFound = false;
     while (!sFound) {
+        // may be optimized? https://stackoverflow.com/questions/17925051/fast-textfile-reading-in-c
         sRead = getline(&m_LineBuffer, &sLen, m_File);
         if (sRead == -1) {
             fprintf(stderr, "EOF reached\n"); 
