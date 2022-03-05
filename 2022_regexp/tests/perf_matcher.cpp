@@ -10,18 +10,9 @@ int main() {
         EXEC_TIME("match_2000000_iterations_not_optimized");
         for (size_t i = 0; i < 2000000; i++)
         {
-            sMatcher.Complient("123456789", /*aOptimized=*/ false);
-            sMatcher.Complient("wewtwmerkwegxsrt", /*aOptimized=*/ false);
-            sMatcher.Complient("ktk4588sdwer225wgsvxfbher4w3531341", /*aOptimized=*/ false);
-        }
-    }
-    {
-        EXEC_TIME("match_2000000_iterations_optimized");
-        for (size_t i = 0; i < 2000000; i++)
-        {
-            sMatcher.Complient("123456789", /*aOptimized=*/ true);
-            sMatcher.Complient("wewtwmerkwegxsrt", /*aOptimized=*/ true);
-            sMatcher.Complient("ktk4588sdwer225wgsvxfbher4w3531341", /*aOptimized=*/ true);
+            sMatcher.Complient("123456789");
+            sMatcher.Complient("wewtwmerkwegxsrt");
+            sMatcher.Complient("ktk4588sdwer225wgsvxfbher4w3531341");
         }
     }
     printf("\033[0;32m");

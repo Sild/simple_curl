@@ -3,41 +3,39 @@
 #include <string.h>
 
 namespace {
-    // https://www.cs.princeton.edu/courses/archive/spr09/cos333/beautiful.html
-    bool matchstar(int c, char *regexp, const char *text);
+    // modify the https://www.cs.princeton.edu/courses/archive/spr09/cos333/beautiful.html
+    bool matchstar(char *aFilter, const char *aLine);
 
     /* matchhere: search for regexp at beginning of text */
-    bool matchhere(char *regexp, const char *text)
+    bool matchhere(char *aFilter, const char *aLine)
     {
-        if (regexp[0] == '\0')
-            return true;
-        if (regexp[1] == '*')
-            return matchstar(regexp[0], regexp+2, text);
-        if (regexp[0] == '$' && regexp[1] == '\0')
-            return *text == '\0';
-        if (*text!='\0' && (regexp[0]=='.' || regexp[0]==*text))
-            return matchhere(regexp+1, text+1);
+        if (aFilter[0] == '*')
+            return matchstar(aFilter+1, aLine);
+        if (aFilter[0] == '\0' || (aFilter[0] == '$' && aFilter[1] == '\0'))
+            return *aLine == '\0';
+        if (*aLine != '\0' && (aFilter[0] == '?' || aFilter[0] == *aLine))
+            return matchhere(aFilter+1, aLine+1);
         return false;
     }
 
     /* matchstar: search for c*regexp at beginning of text */
-    bool matchstar(int c, char *regexp, const char *text)
+    bool matchstar(char *aFilter, const char *aLine)
     {
         do {    /* a * matches zero or more instances */
-            if (matchhere(regexp, text))
+            if (matchhere(aFilter, aLine))
                 return true;
-        } while (*text != '\0' && (*text++ == c || c == '.'));
+        } while (*aLine++ != '\0');
         return false;
     }
 
-    bool match(char* regexp, const char* text) {
-        if (regexp[0] == '^')
-            return matchhere(regexp + 1, text);
+    bool match(char* aFilter, const char* aLine) {
+        if (aFilter[0] == '^')
+            return matchhere(aFilter + 1, aLine);
 
         do {    /* must look even if string is empty */
-            if (matchhere(regexp, text))
+            if (matchhere(aFilter, aLine))
                 return true;
-        } while (*text++ != '\0');
+        } while (*aLine++ != '\0');
 
         return false;
     }
@@ -73,9 +71,9 @@ bool Matcher::SetFilter(const char* aFilter) {
     return true;
 }
 
-bool Matcher::Complient(const char* aLine, bool aOptimized) {
+bool Matcher::Complient(const char* aLine) {
     if (m_FilterEmpty)
         return true;
 
-    return aOptimized? match(m_Filter, aLine) :  match(m_Filter, aLine);
+    return match(m_Filter, aLine);
 }

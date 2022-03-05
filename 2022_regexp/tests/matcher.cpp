@@ -14,7 +14,7 @@ void test_begin_end() {
 };
 
 void test_asterisk() {
-    Matcher sMatcher("1.*23.*");
+    Matcher sMatcher("1*23*");
     assert(sMatcher.Complient("123"));
     assert(sMatcher.Complient("1xxx23"));
     assert(sMatcher.Complient("1xxx23"));
@@ -26,9 +26,23 @@ void test_asterisk() {
     assert(!sMatcher.Complient("1zw2x3"));
 }
 
+void test_question() {
+    Matcher sMatcher("?1?23?");
+    assert(sMatcher.Complient("x12234"));
+    assert(sMatcher.Complient("v1x234"));
+    assert(!sMatcher.Complient("v1x2x3"));
+    assert(!sMatcher.Complient("b12x34"));
+    assert(!sMatcher.Complient("n122345"));
+    assert(!sMatcher.Complient("r1222345"));
+    assert(!sMatcher.Complient("q1223"));
+    assert(!sMatcher.Complient("12233"));
+}
+
 int main() {
     test_begin_end();
     test_asterisk();
+    test_question();
+
     printf("\033[0;32m");
     printf("matcher tests passed!\n");
     printf("\033[0m");
