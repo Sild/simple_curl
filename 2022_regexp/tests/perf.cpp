@@ -15,5 +15,7 @@ int main() {
             while (sCLogReader.GetNextLine(sBuf, sBufSize));
         }
     }
+    printf("\033[0;32m");
     printf("perf tests done!\n");
+    printf("\033[0m");
 }

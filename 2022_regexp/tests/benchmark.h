@@ -12,7 +12,9 @@ struct TExecTime {
     {}
 
     void Dump() {
+        printf("\033[0;32m");
         printf("Time taken for %s (seconds): %.10f\n", Id, static_cast<double>(clock() - ExecStart)/CLOCKS_PER_SEC);
+        printf("\033[0m");
         Dumped = true;
     }
 
