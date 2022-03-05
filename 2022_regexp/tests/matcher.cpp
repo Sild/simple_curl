@@ -3,7 +3,7 @@
 
 #include "../src/Matcher.hpp"
 
-void test_asterisk() {
+void test_star() {
     Matcher sMatcher("1*23*");
     assert(sMatcher.Complient("123"));
     assert(sMatcher.Complient("1xxx23"));
@@ -14,6 +14,27 @@ void test_asterisk() {
     assert(sMatcher.Complient("1x234"));
     assert(!sMatcher.Complient("23"));
     assert(!sMatcher.Complient("1zw2x3"));
+
+    sMatcher.SetFilter("***123");
+    assert(sMatcher.Complient("x123"));
+    assert(sMatcher.Complient("xxx123"));
+    assert(!sMatcher.Complient("xxx124"));
+
+    sMatcher.SetFilter("***1**23");
+    assert(sMatcher.Complient("x123"));
+    assert(sMatcher.Complient("x1xxx23"));
+    assert(!sMatcher.Complient("x1xxx2x3"));
+
+    sMatcher.SetFilter("***1**2*3");
+    assert(sMatcher.Complient("x123"));
+    assert(sMatcher.Complient("x1xxx23"));
+    assert(sMatcher.Complient("x1xxx2x3"));
+
+    sMatcher.SetFilter("***1**2*3");
+    assert(sMatcher.Complient("x1xxx2xxx3"));
+
+    sMatcher.SetFilter("***1**2*3****");
+    assert(sMatcher.Complient("x1xxx2xxx3xx"));
 }
 
 void test_question() {
@@ -82,7 +103,7 @@ void test_some_cases() {
 }
 
 int main() {
-    test_asterisk();
+    test_star();
     test_question();
     test_set_filter();
     test_some_cases();
