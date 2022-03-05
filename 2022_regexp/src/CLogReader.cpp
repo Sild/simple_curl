@@ -27,6 +27,7 @@ void CLogReader::Close() {
 }
 
 bool CLogReader::SetFilter(const char* aFilter) {
+    // should I also reset m_File?
     return m_Matcher.SetFilter(aFilter);
 }
 
@@ -38,23 +39,33 @@ bool CLogReader::GetNextLine(char *aBuf, const int aBufSize) {
 
     size_t sLen = 0;
     ssize_t sRead = 0;
-    sRead = getline(&m_LineBuffer, &sLen, m_File);
-    if (sRead == -1) {
-        fprintf(stderr, "EOF reached\n"); 
-        Close(); // how to know about EOF?
-        return false;
+    bool sFound = false;
+    while (!sFound) {
+        sRead = getline(&m_LineBuffer, &sLen, m_File);
+        if (sRead == -1) {
+            fprintf(stderr, "EOF reached\n"); 
+            Close(); // how to know about EOF?
+            break;
+        }
+
+        if (m_LineBuffer[sRead - 1] == '\n')
+        {
+            m_LineBuffer[sRead - 1] = '\0';
+            --sRead;
+        }
+        
+        if (sRead >= aBufSize) { // getline also store the \n. will replace it by \0
+            fprintf(stderr, "buff size too small: line_size >= size (%ld>=%d) \n", sRead, aBufSize); 
+            break; // how to know about low buffer? should I keep line to rerun GetNextLine?
+        }
+
+        sFound = LineMatch(m_LineBuffer);
     }
+
+    if (sFound)
+        memmove(aBuf, m_LineBuffer, sRead + 1); // copy null-term to aBuf too
     
-    if (sRead >= aBufSize) {// >= to store null-term
-        fprintf(stderr, "buff size too small: line_size >= size (%ld>=%d) \n", sRead, aBufSize); 
-        return false; // how to know about low buffer? should I keep line to rerun GetNextLine?
-    }
-
-    if (!LineMatch(m_LineBuffer))
-        return false;
-
-    memmove(aBuf, m_LineBuffer, sRead + 1); // copy null-term to aBuf too
-    return true;
+    return sFound;
 }
 
 bool CLogReader::LineMatch(const char* aBuffer)

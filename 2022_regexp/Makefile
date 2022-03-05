@@ -3,7 +3,7 @@ CFLAGS=-c -Wall
 SRCDIR=./src
 TESTDIR=./tests
 
-all: clean test
+all: clean test sgrep
 
 test: clean test_matcher test_perf_matcher test_perf test_clogreader 
 
@@ -12,6 +12,12 @@ clogreader.o: matcher.o
 
 matcher.o:
 	$(CC) $(CFLAGS) $(SRCDIR)/Matcher.cpp -o matcher.o
+
+sgrep: clean clogreader.o matcher.o sgrep.o 
+	$(CC) clogreader.o sgrep.o matcher.o -o sgrep
+
+sgrep.o:
+	$(CC) $(CFLAGS) $(SRCDIR)/main.cpp -o sgrep.o
 
 test_perf: clean clogreader.o test_perf.o matcher.o
 	$(CC) clogreader.o test_perf.o matcher.o -o test_perf && ./test_perf 2>/dev/null
@@ -38,4 +44,4 @@ test_perf_matcher.o:
 	$(CC) $(CFLAGS) $(TESTDIR)/perf_matcher.cpp -o test_perf_matcher.o
 
 clean:
-	rm -f clogreader.o matcher.o test_perf.o test_perf test_perf_matcher test_perf_matcher.o test_clogreader.o test_clogreader test_matcher.o test_matcher
+	rm -f sgrep sgrep.o clogreader.o matcher.o test_perf.o test_perf test_perf_matcher test_perf_matcher.o test_clogreader.o test_clogreader test_matcher.o test_matcher
