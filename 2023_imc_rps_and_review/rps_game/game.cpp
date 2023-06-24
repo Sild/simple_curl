@@ -63,6 +63,8 @@ rps::Action rps::readUserAction() {
     std::string userActionStr;
     while (true) {
         std::cout << "Your input: ";
+        // if use std::cin >> userActionStr, it get broken on cmd+D input for example
+        // https://stackoverflow.com/questions/47612169/c-stop-asking-for-input-on-ctrl-d
         std::getline(std::cin, userActionStr);
         if (std::cin.eof()==1) {
             std::cin.clear();
