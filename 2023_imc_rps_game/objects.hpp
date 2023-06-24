@@ -22,12 +22,12 @@ namespace rps
         Exit,
         MaxNum,
     };
-    const std::string &actionsToStr(Action act)
+    inline const std::string &actionsToStr(Action act)
     {
         const static auto strings = std::vector<std::string>{"", "paper", "rock", "scissors", "exit", "undefined"};
         return strings[tools::toUnderlying(act)];
     }
-    Action genRandomAction() {
+    inline Action genRandomAction() {
         return Action(rand() % 3 + 1);
     }
 
@@ -38,7 +38,7 @@ namespace rps
         Draw,
         MaxNum
     };
-    const std::string &gameResultForUserToStr(GameResultForUser act)
+    inline  const std::string &gameResultForUserToStr(GameResultForUser act)
     {
         const static auto strings = std::vector<std::string>{"loose", "win", "have a draw", "undefined"};
         return strings[tools::toUnderlying(act)];

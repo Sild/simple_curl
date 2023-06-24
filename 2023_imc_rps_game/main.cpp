@@ -1,7 +1,7 @@
-#include "game.hpp"
-
 #include <charconv>
 #include <iostream>
+
+#include "game.hpp"
 
 int main(int argc, char* argv[]) {
     auto game = rps::Game();
